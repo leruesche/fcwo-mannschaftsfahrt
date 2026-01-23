@@ -5,5 +5,6 @@ export default withNuxt(
   antfu({
     formatters: true,
     vue: true,
+    css: true,
   }),
 )

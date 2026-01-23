@@ -1,4 +1,22 @@
-<script setup>
+<script setup lang="ts">
+import type { NavigationMenuItem } from '@nuxt/ui'
+
+const items = ref<NavigationMenuItem[]>([
+  {
+    label: 'Startseite',
+    icon: 'i-lucide-house',
+    to: '/',
+  },
+  {
+    label: 'Zahlungstracking',
+    icon: 'i-lucide-credit-card',
+    to: '/zahlungen',
+  },
+])
+
+const title = 'Mannschaftsfahrt - Zahlungstracking'
+const description = 'Verwaltung der Mannschaftsfahrt - Zahlungstracking und Spielerliste'
+
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -7,46 +25,30 @@ useHead({
     { rel: 'icon', href: '/favicon.ico' },
   ],
   htmlAttrs: {
-    lang: 'en',
+    lang: 'de',
   },
 })
-
-const title = 'Nuxt Starter Template'
-const description = 'A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours.'
 
 useSeoMeta({
   title,
   description,
   ogTitle: title,
   ogDescription: description,
-  ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/starter-light.png',
-  twitterImage: 'https://ui.nuxt.com/assets/templates/nuxt/starter-light.png',
-  twitterCard: 'summary_large_image',
+  twitterCard: 'summary',
 })
 </script>
 
 <template>
   <UApp>
     <UHeader>
-      <template #left>
-        <NuxtLink to="/">
-          <AppLogo class="w-auto h-6 shrink-0" />
-        </NuxtLink>
-
-        <TemplateMenu />
+      <template #title>
+        <Logo class="h-6 w-auto" />
       </template>
+
+      <UNavigationMenu :items="items" />
 
       <template #right>
         <UColorModeButton />
-
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
       </template>
     </UHeader>
 
@@ -59,19 +61,8 @@ useSeoMeta({
     <UFooter>
       <template #left>
         <p class="text-sm text-muted">
-          Built with Nuxt UI • © {{ new Date().getFullYear() }}
+          Mannschaftsfahrt Verwaltung • © {{ new Date().getFullYear() }}
         </p>
-      </template>
-
-      <template #right>
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
       </template>
     </UFooter>
   </UApp>

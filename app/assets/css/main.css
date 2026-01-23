@@ -2,7 +2,7 @@
 @import '@nuxt/ui';
 
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  --font-sans: 'Overpass', sans-serif;
 
   --color-green-50: #effdf5;
   --color-green-100: #d9fbe8;
@@ -15,4 +15,40 @@
   --color-green-800: #016538;
   --color-green-900: #0a5331;
   --color-green-950: #052e16;
+
+  --color-fcwo-blue-50: #ebf9ff;
+  --color-fcwo-blue-100: #d1f2ff;
+  --color-fcwo-blue-200: #aee8ff;
+  --color-fcwo-blue-300: #76ddff;
+  --color-fcwo-blue-400: #35c7ff;
+  --color-fcwo-blue-500: #07a4ff;
+  --color-fcwo-blue-600: #007eff;
+  --color-fcwo-blue-700: #0065ff;
+  --color-fcwo-blue-800: #0054d7;
+  --color-fcwo-blue-900: #0049a3;
+  --color-fcwo-blue-950: #062e65;
+
+  --color-fcwo-yellow-50: #fdfce9;
+  --color-fcwo-yellow-100: #fcf9c5;
+  --color-fcwo-yellow-200: #faf18e;
+  --color-fcwo-yellow-300: #f7e24d;
+  --color-fcwo-yellow-400: #f4d434;
+  --color-fcwo-yellow-500: #e3b60f;
+  --color-fcwo-yellow-600: #c48e0a;
+  --color-fcwo-yellow-700: #9c660c;
+  --color-fcwo-yellow-800: #815112;
+  --color-fcwo-yellow-900: #6e4215;
+  --color-fcwo-yellow-950: #402208;
+}
+
+@theme {
+  --font-sans: 'Overpass', sans-serif;
+}
+
+:root {
+  --ui-primary: var(--color-fcwo-blue-900);
+}
+
+.dark {
+  --ui-primary: var(--color-fcwo-yellow-400);
 }
