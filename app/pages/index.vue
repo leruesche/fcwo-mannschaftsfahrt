@@ -10,7 +10,7 @@ useHead({
 <template>
   <div>
     <UPageHero
-      title="🏔️ Mannschaftsfahrt"
+      title="🍻 Mannschaftsfahrt 🍻"
       description="Willkommen zur Verwaltung der Mannschaftsfahrt. Hier kannst du alle Zahlungen und Teilnehmer verwalten, den Überblick über offene Beträge behalten und die Finanzen im Blick haben."
       :links="[{
         label: 'Zum Zahlungstracking',
