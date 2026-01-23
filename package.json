@@ -1,0 +1,31 @@
+{
+  "name": "fcwo-mannschaftsfahrt",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.28.1",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.86",
+    "@iconify-json/simple-icons": "^1.2.67",
+    "@nuxt/ui": "^4.4.0",
+    "@nuxtjs/tailwindcss": "6.14.0",
+    "nuxt": "^4.2.2",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^7.2.0",
+    "@nuxt/eslint": "^1.12.1",
+    "eslint": "^9.39.2",
+    "eslint-plugin-format": "^1.3.1",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.2.2"
+  }
+}
