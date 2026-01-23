@@ -1,30 +1,50 @@
 # FCWO Mannschaftsfahrt
 
-## Installierte Module
+Eine moderne Web-Anwendung zur Verwaltung von Zahlungen und Teilnehmern für Mannschaftsfahrten. Die App ermöglicht es, Spieler hinzuzufügen, deren Zahlungsstatus zu verfolgen und alle Finanzen übersichtlich zu verwalten.
 
-### Dependencies
+## ✨ Features
 
-- `nuxt` - Nuxt Framework
-- `@nuxt/ui` - Nuxt UI Komponenten
-- `@nuxtjs/tailwindcss` - Tailwind CSS Integration für Nuxt
-- `tailwindcss` - Tailwind CSS Framework
-- `@iconify-json/lucide` - Lucide Icons für Iconify
-- `@iconify-json/simple-icons` - Simple Icons für Iconify
+- **Zahlungstracking**: Übersichtliche Verwaltung aller Zahlungen pro Spieler
+- **Spielerliste**: Hinzufügen, Bearbeiten und Entfernen von Teilnehmern
+- **Statusanzeige**: Visuelle Darstellung des Zahlungsstatus (Nicht gezahlt, Teilweise gezahlt, Vollständig gezahlt, Überzahlung)
+- **Automatische Berechnungen**: Berechnung von Restbeträgen, Gesamtsummen und offenen Beträgen
+- **Persistenz**: Automatische Speicherung im Browser (LocalStorage)
+- **Export & Import**: Daten als CSV oder JSON exportieren und importieren
+- **Responsive Design**: Moderne, mobile-freundliche Benutzeroberfläche mit Nuxt UI
 
-### Dev Dependencies
+## 🚀 Tech Stack
 
-- `typescript` - TypeScript Support
-- `vue-tsc` - Vue TypeScript Compiler
-- `eslint` - ESLint Linter
-- `@nuxt/eslint` - Nuxt ESLint Integration
-- `@antfu/eslint-config` - ESLint Konfiguration von Anthony Fu
-- `eslint-plugin-format` - ESLint Format Plugin
+- **Framework**: [Nuxt 4](https://nuxt.com/) - Vue.js Meta-Framework
+- **State Management**: [Pinia](https://pinia.vuejs.org/) - Vue State Management
+- **UI Framework**: [Nuxt UI](https://ui.nuxt.com/) - Vue Component Library
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-First CSS Framework
+- **Icons**: [Iconify](https://iconify.design/) mit Lucide Icons
+- **Language**: [TypeScript](https://www.typescriptlang.org/) - Typisierte JavaScript Superset
+- **Linting**: [ESLint](https://eslint.org/) mit [@antfu/eslint-config](https://github.com/antfu/eslint-config)
 
-## Dev Settings
+## 📦 Installation
+
+### Voraussetzungen
+
+- Node.js (Version 18 oder höher)
+- pnpm (Version 10.28.1 oder höher)
+
+### Setup
+
+```bash
+# Repository klonen
+git clone <repository-url>
+cd fcwo-mannschaftsfahrt
+
+# Dependencies installieren
+pnpm install
+```
+
+## 🛠️ Entwicklung
 
 ### Scripts
 
-- `pnpm dev` - Startet den Development Server
+- `pnpm dev` - Startet den Development Server (standardmäßig auf http://localhost:3000)
 - `pnpm build` - Baut die Anwendung für Production
 - `pnpm preview` - Vorschau der Production Build
 - `pnpm lint` - Führt ESLint aus
@@ -32,8 +52,88 @@
 - `pnpm typecheck` - Führt TypeScript Type Checking aus
 - `pnpm postinstall` - Führt `nuxt prepare` nach Installation aus
 
-### Konfiguration
+### Development Server starten
 
-- **ESLint**: Konfiguriert mit `@antfu/eslint-config`, aktiviert Formatters und Vue Support
-- **TypeScript**: Konfiguriert mit Nuxt TypeScript References
-- **Package Manager**: pnpm@10.28.1
+```bash
+pnpm dev
+```
+
+Die Anwendung ist dann unter `http://localhost:3000` erreichbar.
+
+## 📁 Projektstruktur
+
+```
+fcwo-mannschaftsfahrt/
+├── app/
+│   ├── assets/
+│   │   └── css/
+│   │       └── main.css          # Globale Styles
+│   ├── components/                # Vue Komponenten
+│   │   ├── AppLogo.vue
+│   │   └── TemplateMenu.vue
+│   ├── composables/               # Vue Composables
+│   │   ├── useFileExport.ts      # Export/Import Funktionalität
+│   │   └── usePaymentUtils.ts    # Zahlungs-Utilities
+│   ├── pages/                     # Nuxt Pages
+│   │   ├── index.vue             # Startseite
+│   │   └── zahlungen.vue         # Zahlungstracking-Seite
+│   ├── stores/                    # Pinia Stores
+│   │   └── payment.ts            # Payment Store
+│   ├── types/                     # TypeScript Typen
+│   │   └── payment.ts            # Payment Typen
+│   ├── app.config.ts
+│   └── app.vue
+├── public/                        # Statische Assets
+├── nuxt.config.ts                 # Nuxt Konfiguration
+├── tsconfig.json                  # TypeScript Konfiguration
+└── package.json
+```
+
+## 📋 Dependencies
+
+### Production Dependencies
+
+- `nuxt` (^4.2.2) - Nuxt Framework
+- `@nuxt/ui` (^4.4.0) - Nuxt UI Komponenten
+- `@nuxtjs/tailwindcss` (6.14.0) - Tailwind CSS Integration für Nuxt
+- `tailwindcss` (^4.1.18) - Tailwind CSS Framework
+- `@pinia/nuxt` (^0.11.3) - Pinia Integration für Nuxt
+- `pinia` (^3.0.4) - Vue State Management
+- `@iconify-json/lucide` (^1.2.86) - Lucide Icons für Iconify
+- `@iconify-json/simple-icons` (^1.2.67) - Simple Icons für Iconify
+
+### Development Dependencies
+
+- `typescript` (^5.9.3) - TypeScript Support
+- `vue-tsc` (^3.2.2) - Vue TypeScript Compiler
+- `eslint` (^9.39.2) - ESLint Linter
+- `@nuxt/eslint` (^1.12.1) - Nuxt ESLint Integration
+- `@antfu/eslint-config` (^7.2.0) - ESLint Konfiguration von Anthony Fu
+- `eslint-plugin-format` (^1.3.1) - ESLint Format Plugin
+
+## ⚙️ Konfiguration
+
+### ESLint
+
+Konfiguriert mit `@antfu/eslint-config`, aktiviert Formatters und Vue Support.
+
+### TypeScript
+
+Konfiguriert mit Nuxt TypeScript References für optimale Type-Safety.
+
+### Package Manager
+
+Verwendet `pnpm@10.28.1` als Package Manager.
+
+## 💾 Datenverwaltung
+
+Die Anwendung speichert alle Daten automatisch im Browser-LocalStorage. Zusätzlich können Daten als CSV oder JSON exportiert und wieder importiert werden.
+
+### Export-Formate
+
+- **CSV**: Enthält Name, Gezahlter Betrag, Restbetrag und Status
+- **JSON**: Vollständige Datenstruktur inklusive Metadaten (Version, Export-Zeitpunkt)
+
+## 📄 Lizenz
+
+Siehe [LICENSE](LICENSE) Datei für Details.
