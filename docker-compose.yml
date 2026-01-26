@@ -1,0 +1,50 @@
+services:
+  fcwo-mannschaftsfahrt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: fcwo-mannschaftsfahrt:latest
+    container_name: fcwo-mannschaftsfahrt
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fcwo-network
+
+  fcwo-mannschaftsfahrt-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    image: fcwo-mannschaftsfahrt:dev
+    container_name: fcwo-mannschaftsfahrt-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.output
+      - /app/.nuxt
+      - /app/.nitro
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    command: pnpm dev
+    networks:
+      - fcwo-network
+
+networks:
+  fcwo-network:
+    driver: bridge

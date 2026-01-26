@@ -26,11 +26,17 @@ Eine moderne Web-Anwendung zur Verwaltung von Zahlungen und Teilnehmern für Man
 
 ### Voraussetzungen
 
+**Lokale Entwicklung:**
 - Node.js (Version 18 oder höher)
 - pnpm (Version 10.28.1 oder höher)
 
+**Docker (empfohlen):**
+- Docker (Version 20.10 oder höher)
+- Docker Compose (Version 2.0 oder höher)
+
 ### Setup
 
+**Lokale Installation:**
 ```bash
 # Repository klonen
 git clone <repository-url>
@@ -38,6 +44,15 @@ cd fcwo-mannschaftsfahrt
 
 # Dependencies installieren
 pnpm install
+```
+
+**Docker Setup:**
+```bash
+# Repository klonen
+git clone <repository-url>
+cd fcwo-mannschaftsfahrt
+
+# Keine manuelle Installation nötig - Docker übernimmt alles
 ```
 
 ## 🛠️ Entwicklung
@@ -54,11 +69,69 @@ pnpm install
 
 ### Development Server starten
 
+**Lokale Entwicklung:**
 ```bash
 pnpm dev
 ```
 
+**Docker Development (empfohlen):**
+```bash
+# Development Container starten
+docker-compose up fcwo-mannschaftsfahrt-dev
+
+# Im Hintergrund starten
+docker-compose up -d fcwo-mannschaftsfahrt-dev
+
+# Logs anzeigen
+docker-compose logs -f fcwo-mannschaftsfahrt-dev
+```
+
 Die Anwendung ist dann unter `http://localhost:3000` erreichbar.
+
+### Docker Development Features
+
+- **Hot-Reload**: Änderungen am Code werden automatisch übernommen
+- **Isolierte Umgebung**: Keine lokale Node.js Installation nötig
+- **Konsistente Umgebung**: Gleiche Bedingungen wie im Production-Build
+
+## 🐳 Docker Deployment
+
+### Production Build
+
+```bash
+# Production Image bauen
+docker-compose build fcwo-mannschaftsfahrt
+
+# Production Container starten
+docker-compose up -d fcwo-mannschaftsfahrt
+
+# Status prüfen
+docker-compose ps
+
+# Logs anzeigen
+docker-compose logs -f fcwo-mannschaftsfahrt
+
+# Container stoppen
+docker-compose down
+```
+
+### Docker Services
+
+Die `docker-compose.yml` enthält zwei Services:
+
+- **`fcwo-mannschaftsfahrt`**: Production-Service mit optimiertem Build
+- **`fcwo-mannschaftsfahrt-dev`**: Development-Service mit Hot-Reload
+
+Beide Services nutzen das Netzwerk `fcwo-network`, wodurch später einfach eine Datenbank hinzugefügt werden kann.
+
+### Port-Konfiguration
+
+Standardmäßig läuft die App auf Port `3000`. Um einen anderen Port zu verwenden, passe die Port-Mapping in der `docker-compose.yml` an:
+
+```yaml
+ports:
+  - "8080:3000"  # Externer Port:Interner Port
+```
 
 ## 📁 Projektstruktur
 
@@ -69,8 +142,6 @@ fcwo-mannschaftsfahrt/
 │   │   └── css/
 │   │       └── main.css          # Globale Styles
 │   ├── components/                # Vue Komponenten
-│   │   ├── AppLogo.vue
-│   │   └── TemplateMenu.vue
 │   ├── composables/               # Vue Composables
 │   │   ├── useFileExport.ts      # Export/Import Funktionalität
 │   │   └── usePaymentUtils.ts    # Zahlungs-Utilities
@@ -84,6 +155,9 @@ fcwo-mannschaftsfahrt/
 │   ├── app.config.ts
 │   └── app.vue
 ├── public/                        # Statische Assets
+├── Dockerfile                     # Multi-stage Docker Build
+├── docker-compose.yml             # Docker Compose Konfiguration
+├── .dockerignore                  # Docker Build Excludes
 ├── nuxt.config.ts                 # Nuxt Konfiguration
 ├── tsconfig.json                  # TypeScript Konfiguration
 └── package.json
@@ -124,6 +198,13 @@ Konfiguriert mit Nuxt TypeScript References für optimale Type-Safety.
 ### Package Manager
 
 Verwendet `pnpm@10.28.1` als Package Manager.
+
+### Docker
+
+Die Anwendung ist vollständig containerisiert mit:
+- **Multi-stage Dockerfile**: Optimiert für minimale Image-Größe
+- **Docker Compose**: Separate Services für Development und Production
+- **Healthchecks**: Automatische Überwachung des Production-Services
 
 ## 💾 Datenverwaltung
 

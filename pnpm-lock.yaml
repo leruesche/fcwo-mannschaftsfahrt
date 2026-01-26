@@ -15,7 +15,7 @@ importers:
         specifier: ^1.2.67
         version: 1.2.67
       '@nuxt/image':
-        specifier: 2.0.0
+        specifier: ^2.0.0
         version: 2.0.0(db0@0.3.4)(ioredis@5.9.2)(magicast@0.5.1)
       '@nuxt/ui':
         specifier: ^4.4.0
