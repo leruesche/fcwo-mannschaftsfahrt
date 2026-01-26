@@ -6,12 +6,9 @@ export default defineNuxtConfig({
     enabled: true,
   },
 
-  css: ['~/assets/css/main.css'],
+  ssr: true,
 
-  // @ts-expect-error - routeRules is valid in Nuxt 4 but types may not be fully updated
-  routeRules: {
-    '/': { prerender: true },
-  },
+  css: ['~/assets/css/main.css'],
 
   compatibilityDate: '2025-01-15',
 
