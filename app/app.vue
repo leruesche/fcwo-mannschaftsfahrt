@@ -42,7 +42,12 @@ useSeoMeta({
   <UApp>
     <UHeader>
       <template #title>
-        <NuxtImg src="/fcwo-logo.png" width="40" height="40" format="webp" />
+        <NuxtImg
+          src="/fcwo-logo.png"
+          width="40"
+          height="40"
+          format="webp"
+        />
       </template>
 
       <UNavigationMenu :items="items" />

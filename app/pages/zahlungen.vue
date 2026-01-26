@@ -208,7 +208,10 @@ useHead({
         </template>
 
         <div>
-          <label for="totalAmount" class="block text-sm font-medium mb-2">
+          <label
+            for="totalAmount"
+            class="mb-2 block text-sm font-medium"
+          >
             Gesamtbetrag pro Spieler (€)
           </label>
           <UInput
@@ -239,7 +242,10 @@ useHead({
           </div>
         </template>
 
-        <div v-if="paymentData.length === 0" class="text-center py-12">
+        <div
+          v-if="paymentData.length === 0"
+          class="py-12 text-center"
+        >
           <p class="text-muted">
             Noch keine Spieler hinzugefügt. Klicke auf "Spieler hinzufügen" um zu beginnen.
           </p>
@@ -309,24 +315,24 @@ useHead({
         </template>
 
         <div class="space-y-4">
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <span class="text-muted">Anzahl Spieler:</span>
             <span class="font-semibold">{{ store.personCount }}</span>
           </div>
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <span class="text-muted">Gesamtbetrag pro Spieler:</span>
             <span class="font-semibold">{{ formatCurrency(store.totalAmount) }}</span>
           </div>
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <span class="text-muted">Bereits gezahlt:</span>
             <span class="font-semibold text-success">{{ formatCurrency(store.totalPaid) }}</span>
           </div>
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <span class="text-muted">Noch offen:</span>
             <span class="font-semibold text-warning">{{ formatCurrency(store.pendingAmount) }}</span>
           </div>
           <USeparator />
-          <div class="flex justify-between items-center text-lg">
+          <div class="flex items-center justify-between text-lg">
             <span class="font-semibold">Erwarteter Gesamtbetrag:</span>
             <span class="font-bold">{{ formatCurrency(store.expectedTotal) }}</span>
           </div>
@@ -341,7 +347,7 @@ useHead({
           </h2>
         </template>
 
-        <p class="text-sm text-muted mb-4">
+        <p class="mb-4 text-sm text-muted">
           💾 Daten werden automatisch im Browser gespeichert. Du kannst sie auch als Datei exportieren oder importieren.
         </p>
 
