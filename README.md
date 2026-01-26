@@ -27,16 +27,19 @@ Eine moderne Web-Anwendung zur Verwaltung von Zahlungen und Teilnehmern für Man
 ### Voraussetzungen
 
 **Lokale Entwicklung:**
+
 - Node.js (Version 18 oder höher)
 - pnpm (Version 10.28.1 oder höher)
 
 **Docker (empfohlen):**
+
 - Docker (Version 20.10 oder höher)
 - Docker Compose (Version 2.0 oder höher)
 
 ### Setup
 
 **Lokale Installation:**
+
 ```bash
 # Repository klonen
 git clone <repository-url>
@@ -47,6 +50,7 @@ pnpm install
 ```
 
 **Docker Setup:**
+
 ```bash
 # Repository klonen
 git clone <repository-url>
@@ -70,11 +74,13 @@ cd fcwo-mannschaftsfahrt
 ### Development Server starten
 
 **Lokale Entwicklung:**
+
 ```bash
 pnpm dev
 ```
 
 **Docker Development (empfohlen):**
+
 ```bash
 # Development Container starten
 docker-compose up fcwo-mannschaftsfahrt-dev
@@ -130,7 +136,7 @@ Standardmäßig läuft die App auf Port `3000`. Um einen anderen Port zu verwend
 
 ```yaml
 ports:
-  - "8080:3000"  # Externer Port:Interner Port
+  - '8080:3000' # Externer Port:Interner Port
 ```
 
 ## 📁 Projektstruktur
@@ -202,6 +208,7 @@ Verwendet `pnpm@10.28.1` als Package Manager.
 ### Docker
 
 Die Anwendung ist vollständig containerisiert mit:
+
 - **Multi-stage Dockerfile**: Optimiert für minimale Image-Größe
 - **Docker Compose**: Separate Services für Development und Production
 - **Healthchecks**: Automatische Überwachung des Production-Services
