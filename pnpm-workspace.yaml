@@ -2,6 +2,12 @@ shellEmulator: true
 
 trustPolicy: no-downgrade
 
+# Exclude chokidar from trust policy checks
+# chokidar@4.0.3 lacks provenance attestation but is a transitive dependency
+# from @nuxt/eslint and is safe to use
+trustPolicyExclude:
+  - chokidar
+
 ignoredBuiltDependencies:
   - '@parcel/watcher'
   - '@tailwindcss/oxide'
