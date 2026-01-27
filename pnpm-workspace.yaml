@@ -7,6 +7,7 @@ trustPolicy: no-downgrade
 # from @nuxt/eslint and is safe to use
 trustPolicyExclude:
   - chokidar
+  - semver
 
 ignoredBuiltDependencies:
   - '@parcel/watcher'
