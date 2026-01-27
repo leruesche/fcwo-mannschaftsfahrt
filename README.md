@@ -1,11 +1,11 @@
 # FCWO Mannschaftsfahrt
 
-Eine moderne Web-Anwendung zur Verwaltung von Zahlungen und Teilnehmern für Mannschaftsfahrten. Die App ermöglicht es, Spieler hinzuzufügen, deren Zahlungsstatus zu verfolgen und alle Finanzen übersichtlich zu verwalten.
+Eine moderne Web-Anwendung zur Verwaltung von Zahlungen und Teilnehmern für Mannschaftsfahrten. Die App ermöglicht es, Teilnehmer hinzuzufügen, deren Zahlungsstatus zu verfolgen und alle Finanzen übersichtlich zu verwalten.
 
 ## ✨ Features
 
-- **Zahlungstracking**: Übersichtliche Verwaltung aller Zahlungen pro Spieler
-- **Spielerliste**: Hinzufügen, Bearbeiten und Entfernen von Teilnehmern
+- **Zahlungstracking**: Übersichtliche Verwaltung aller Zahlungen pro Teilnehmer
+- **Teilnehmerliste**: Hinzufügen, Bearbeiten und Entfernen von Teilnehmern
 - **Statusanzeige**: Visuelle Darstellung des Zahlungsstatus (Nicht gezahlt, Teilweise gezahlt, Vollständig gezahlt, Überzahlung)
 - **Automatische Berechnungen**: Berechnung von Restbeträgen, Gesamtsummen und offenen Beträgen
 - **Persistenz**: Automatische Speicherung im Browser (LocalStorage)

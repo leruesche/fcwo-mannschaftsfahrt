@@ -2,7 +2,7 @@
 useHead({
   title: 'Mannschaftsfahrt - Startseite',
   meta: [
-    { name: 'description', content: 'Verwaltung der Mannschaftsfahrt - Zahlungstracking und Spielerliste' },
+    { name: 'description', content: 'Verwaltung der Mannschaftsfahrt - Zahlungstracking und Teilnehmerliste' },
   ],
 })
 </script>
@@ -39,11 +39,11 @@ useHead({
         <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">
-              Spielerliste
+              Teilnehmerliste
             </h3>
           </template>
           <p class="text-muted">
-            Füge Spieler hinzu, verwalte ihre Zahlungsstatus und sehe auf einen Blick, wer bereits gezahlt hat.
+            Füge Teilnehmer hinzu, verwalte ihre Zahlungsstatus und sehe auf einen Blick, wer bereits gezahlt hat.
           </p>
         </UCard>
 

@@ -15,7 +15,7 @@ const items = ref<NavigationMenuItem[]>([
 ])
 
 const title = 'Mannschaftsfahrt - Zahlungstracking'
-const description = 'Verwaltung der Mannschaftsfahrt - Zahlungstracking und Spielerliste'
+const description = 'Verwaltung der Mannschaftsfahrt - Zahlungstracking und Teilnehmerliste'
 
 useHead({
   meta: [

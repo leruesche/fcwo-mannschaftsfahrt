@@ -129,7 +129,7 @@ const tableMeta: TableMeta<Payment> = {
 function addPlayer() {
   store.addPlayer('', 0)
   toast.add({
-    title: 'Spieler hinzugefügt',
+    title: 'Teilnehmer hinzugefügt',
     icon: 'i-lucide-check',
     color: 'success',
   })
@@ -138,7 +138,7 @@ function addPlayer() {
 function removePerson(personId: number) {
   store.removePerson(personId)
   toast.add({
-    title: 'Spieler entfernt',
+    title: 'Teilnehmer entfernt',
     icon: 'i-lucide-check',
     color: 'success',
   })
@@ -186,7 +186,7 @@ function handleFileImport(event: Event) {
 useHead({
   title: 'Zahlungstracking - Mannschaftsfahrt',
   meta: [
-    { name: 'description', content: 'Verwalte die Zahlungen und Spielerliste der Mannschaftsfahrt' },
+    { name: 'description', content: 'Verwalte die Zahlungen und Teilnehmerliste der Mannschaftsfahrt' },
   ],
 })
 </script>
@@ -212,7 +212,7 @@ useHead({
             for="totalAmount"
             class="mb-2 block text-sm font-medium"
           >
-            Gesamtbetrag pro Spieler (€)
+            Gesamtbetrag pro Teilnehmer (€)
           </label>
           <UInput
             id="totalAmount"
@@ -226,18 +226,18 @@ useHead({
         </div>
       </UCard>
 
-      <!-- Spielerliste -->
+      <!-- Teilnehmerliste -->
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold">
-              Spielerliste
+              Teilnehmerliste
             </h2>
             <UButton
               icon="i-lucide-plus"
               @click="addPlayer"
             >
-              Spieler hinzufügen
+              Teilnehmer hinzufügen
             </UButton>
           </div>
         </template>
@@ -247,7 +247,7 @@ useHead({
           class="py-12 text-center"
         >
           <p class="text-muted">
-            Noch keine Spieler hinzugefügt. Klicke auf "Spieler hinzufügen" um zu beginnen.
+            Noch keine Teilnehmer hinzugefügt. Klicke auf "Teilnehmer hinzufügen" um zu beginnen.
           </p>
         </div>
 
@@ -261,7 +261,7 @@ useHead({
           <template #name-cell="{ row }">
             <UInput
               v-model="row.original.name"
-              placeholder="Spielername"
+              placeholder="Teilnehmer"
               size="sm"
               @blur="updatePersonName(row.original.id, row.original.name)"
             />
@@ -316,11 +316,11 @@ useHead({
 
         <div class="space-y-4">
           <div class="flex items-center justify-between">
-            <span class="text-muted">Anzahl Spieler:</span>
+            <span class="text-muted">Anzahl Teilnehmer:</span>
             <span class="font-semibold">{{ store.personCount }}</span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-muted">Gesamtbetrag pro Spieler:</span>
+            <span class="text-muted">Gesamtbetrag pro Teilnehmer:</span>
             <span class="font-semibold">{{ formatCurrency(store.totalAmount) }}</span>
           </div>
           <div class="flex items-center justify-between">

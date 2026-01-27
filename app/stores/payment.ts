@@ -171,7 +171,7 @@ export const usePaymentStore = defineStore('payment', () => {
       csv += `"${person.name}",${person.paidAmount},${remaining},"${statusText}"\n`
     })
 
-    csv += `\nGesamtbetrag pro Spieler,${totalAmount.value}\n`
+    csv += `\nGesamtbetrag pro Teilnehmer,${totalAmount.value}\n`
     return csv
   }
 
