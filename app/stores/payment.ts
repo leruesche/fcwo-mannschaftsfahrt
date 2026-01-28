@@ -1,4 +1,4 @@
-import type { PersonData } from '~/types/payment'
+import type { PaymentsStateDto, PaymentsStateResponse, PersonData } from '~/types/payment'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -99,9 +99,64 @@ export const usePaymentStore = defineStore('payment', () => {
     }
   }
 
+  async function loadFromDatabase() {
+    try {
+      const response = await $fetch<PaymentsStateResponse>('/api/payments')
+      totalAmount.value = response.totalAmount || 0
+
+      const loadedPersons = (response.persons || []).map((p, index) => ({
+        id: index,
+        name: p.name || '',
+        paidAmount: p.paidAmount || 0,
+      }))
+
+      persons.value = loadedPersons.length > 0 ? loadedPersons : []
+      lastSaved.value = response.lastSaved || null
+
+      // Also sync to localStorage for offline access
+      saveToStorage()
+    }
+    catch (error) {
+      console.error('Fehler beim Laden der Daten aus der Datenbank:', error)
+      // Fallback to localStorage if database fails
+      loadFromStorage()
+    }
+  }
+
+  async function saveToDatabase() {
+    try {
+      const state: PaymentsStateDto = {
+        totalAmount: totalAmount.value,
+        persons: persons.value.map(p => ({
+          name: p.name,
+          paidAmount: p.paidAmount,
+        })),
+      }
+
+      const response = await $fetch<PaymentsStateResponse>('/api/payments', {
+        method: 'POST',
+        body: state,
+      })
+
+      lastSaved.value = response.lastSaved || new Date().toISOString()
+
+      // Also sync to localStorage for offline access
+      saveToStorage()
+    }
+    catch (error) {
+      console.error('Fehler beim Speichern der Daten in die Datenbank:', error)
+      // Still save to localStorage as fallback
+      saveToStorage()
+    }
+  }
+
   function setTotalAmount(amount: number) {
     totalAmount.value = amount
     saveToStorage()
+    // Optionally save to database in background (non-blocking)
+    saveToDatabase().catch(() => {
+      // Silently fail - localStorage is the primary storage
+    })
   }
 
   function addPlayer(name = '', paidAmount = 0) {
@@ -115,11 +170,19 @@ export const usePaymentStore = defineStore('payment', () => {
       paidAmount,
     })
     saveToStorage()
+    // Optionally save to database in background (non-blocking)
+    saveToDatabase().catch(() => {
+      // Silently fail - localStorage is the primary storage
+    })
   }
 
   function removePerson(personId: number) {
     persons.value = persons.value.filter(p => p.id !== personId)
     saveToStorage()
+    // Optionally save to database in background (non-blocking)
+    saveToDatabase().catch(() => {
+      // Silently fail - localStorage is the primary storage
+    })
   }
 
   function updatePerson(personId: number, updates: Partial<PersonData>) {
@@ -127,6 +190,10 @@ export const usePaymentStore = defineStore('payment', () => {
     if (person) {
       Object.assign(person, updates)
       saveToStorage()
+      // Optionally save to database in background (non-blocking)
+      saveToDatabase().catch(() => {
+        // Silently fail - localStorage is the primary storage
+      })
     }
   }
 
@@ -218,6 +285,8 @@ export const usePaymentStore = defineStore('payment', () => {
     // Actions
     loadFromStorage,
     saveToStorage,
+    loadFromDatabase,
+    saveToDatabase,
     setTotalAmount,
     addPlayer,
     removePerson,

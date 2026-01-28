@@ -1,0 +1,79 @@
+services:
+  # Development PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: fcwo-mannschaftsfahrt-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fcwo_mannschaftsfahrt_dev
+      POSTGRES_USER: fcwo_user
+      POSTGRES_PASSWORD: fcwo_password
+    volumes:
+      - postgres_mannschaftsfahrt_dev_data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432' # Different port to avoid conflict with teamkasse dev DB
+    networks:
+      - lruesche-dev-network
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U fcwo_user -d fcwo_mannschaftsfahrt_dev]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Development Application
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    image: fcwo-mannschaftsfahrt:dev
+    container_name: fcwo-mannschaftsfahrt-dev
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.output
+      - /app/.nuxt
+      - /app/.nitro
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      DATABASE_URL: postgresql://fcwo_user:fcwo_password@postgres:5432/fcwo_mannschaftsfahrt_dev
+    command: pnpm dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lruesche-dev-network
+
+  # Prisma Studio (Development)
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    image: fcwo-mannschaftsfahrt:dev
+    container_name: fcwo-mannschaftsfahrt-prisma-studio
+    ports:
+      - '5555:5555'
+    environment:
+      DATABASE_URL: postgresql://fcwo_user:fcwo_password@postgres:5432/fcwo_mannschaftsfahrt_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lruesche-dev-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c 'cd /app && pnpm prisma studio --url="postgresql://fcwo_user:fcwo_password@postgres:5432/fcwo_mannschaftsfahrt_dev" --port 5555 --browser none'
+
+volumes:
+  postgres_mannschaftsfahrt_dev_data:
+    driver: local
+
+networks:
+  lruesche-dev-network:
+    driver: bridge

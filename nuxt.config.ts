@@ -17,4 +17,15 @@ export default defineNuxtConfig({
       standalone: false,
     },
   },
+
+  runtimeConfig: {
+    // Private keys (only available on server-side)
+    databaseUrl: process.env.DATABASE_URL || 'postgresql://fcwo_user:fcwo_password@localhost:5432/fcwo_mannschaftsfahrt',
+  },
+
+  nitro: {
+    experimental: {
+      wasm: true,
+    },
+  },
 })

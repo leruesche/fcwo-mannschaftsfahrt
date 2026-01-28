@@ -19,8 +19,18 @@ const fileInput = ref<HTMLInputElement | null>(null)
 // ============================================
 // Lifecycle
 // ============================================
-onMounted(() => {
+onMounted(async () => {
+  // First load from localStorage for immediate display
   store.loadFromStorage()
+
+  // Then try to load from database (will fallback to localStorage on error)
+  try {
+    await store.loadFromDatabase()
+  }
+  catch (error) {
+    console.warn('Could not load from database, using localStorage:', error)
+  }
+
   nextTick(() => {
     if (store.persons.length === 0) {
       store.addPlayer('', 0)

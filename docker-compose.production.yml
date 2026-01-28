@@ -1,0 +1,54 @@
+services:
+  # Production PostgreSQL Database
+  postgres-prod:
+    image: postgres:16-alpine
+    container_name: fcwo-mannschaftsfahrt-db-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fcwo_mannschaftsfahrt
+      POSTGRES_USER: fcwo_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fcwo_mannschaftsfahrt_prod_secure_password_2025}
+    volumes:
+      - postgres_mannschaftsfahrt_prod_data:/var/lib/postgresql/data
+    # No port mapping - only accessible within network
+    networks:
+      - lruesche-shared-network
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U fcwo_user -d fcwo_mannschaftsfahrt]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Production Application
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: fcwo-mannschaftsfahrt-prod:latest
+    container_name: fcwo-mannschaftsfahrt-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      DATABASE_URL: postgresql://fcwo_user:${POSTGRES_PASSWORD:-fcwo_mannschaftsfahrt_prod_secure_password_2025}@postgres-prod:5432/fcwo_mannschaftsfahrt
+    networks:
+      - lruesche-shared-network
+    depends_on:
+      postgres-prod:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, --no-verbose, --tries=1, --spider, 'http://localhost:3000/']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_mannschaftsfahrt_prod_data:
+    driver: local
+
+networks:
+  lruesche-shared-network:
+    external: true
