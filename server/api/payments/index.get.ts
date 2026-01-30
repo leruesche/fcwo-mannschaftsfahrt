@@ -1,12 +1,13 @@
 import type { PaymentsStateResponse } from '~/types/payment'
-import { getPrismaClient } from '../../utils/prisma'
+import { prisma } from '#server/utils/db'
 
-export default defineEventHandler(async (event): Promise<PaymentsStateResponse> => {
+export default defineEventHandler(async (): Promise<PaymentsStateResponse> => {
   try {
-    const prisma = await getPrismaClient()
-
-    // Get all payments from database
+    // Get all payments with participant data
     const payments = await prisma.payment.findMany({
+      include: {
+        participant: true,
+      },
       orderBy: {
         createdAt: 'asc',
       },
@@ -15,31 +16,28 @@ export default defineEventHandler(async (event): Promise<PaymentsStateResponse> 
     if (payments.length === 0) {
       return {
         totalAmount: 0,
-        persons: [],
+        participants: [],
         lastSaved: null,
       }
     }
 
-    // Group by totalAmountPerPerson to determine the current totalAmount
-    // We assume all payments should have the same totalAmountPerPerson
-    const totalAmount = payments[0]?.totalAmountPerPerson || 0
+    // Get totalAmount from first payment (all should have the same)
+    const totalAmount = payments[0]?.totalAmount || 0
 
-    // Convert payments to persons format
-    const persons = payments.map(payment => ({
-      name: payment.name,
+    // Convert payments to participants format
+    const participants = payments.map(payment => ({
+      name: payment.participant.name,
       paidAmount: payment.paidAmount,
     }))
 
     // Get the most recent updatedAt as lastSaved
-    const lastSaved = payments.length > 0
-      ? payments.reduce((latest, payment) => {
-          return payment.updatedAt > latest ? payment.updatedAt : latest
-        }, payments[0].updatedAt).toISOString()
-      : null
+    const lastSaved = payments.reduce((latest, payment) => {
+      return payment.updatedAt > latest ? payment.updatedAt : latest
+    }, payments[0]!.updatedAt).toISOString()
 
     return {
       totalAmount,
-      persons,
+      participants,
       lastSaved,
     }
   }

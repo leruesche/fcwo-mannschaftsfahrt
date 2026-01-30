@@ -34,15 +34,15 @@ export function useFileExport() {
     })
   }
 
-  function importJSON(
+  async function importJSON(
     file: File,
-    onSuccess: (content: string) => boolean,
+    onSuccess: (content: string) => boolean | Promise<boolean>,
   ): Promise<void> {
     return new Promise((resolve) => {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const content = e.target?.result as string
-        const success = onSuccess(content)
+        const success = await onSuccess(content)
 
         if (success) {
           toast.add({

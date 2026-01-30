@@ -1,22 +1,33 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client"
-  output   = "../node_modules/.prisma/client"
+  provider      = "prisma-client"
+  output        = "./generated"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+model Participant {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment Payment?
+
+  @@map("participants")
+}
+
 model Payment {
-  id                  String   @id @default(uuid())
-  name                String
-  paidAmount          Float    @default(0)
-  totalAmountPerPerson Float
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id          String   @id @default(uuid())
+  paidAmount  Float    @default(0)
+  totalAmount Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  participantId String      @unique
+  participant   Participant @relation(fields: [participantId], references: [id])
 
   @@map("payments")
 }

@@ -1,54 +1,53 @@
 services:
-  # Production PostgreSQL Database
-  postgres-prod:
+  # PostgreSQL Database
+  db:
     image: postgres:16-alpine
     container_name: fcwo-mannschaftsfahrt-db-prod
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_DB: fcwo_mannschaftsfahrt
       POSTGRES_USER: fcwo_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fcwo_mannschaftsfahrt_prod_secure_password_2025}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
-      - postgres_mannschaftsfahrt_prod_data:/var/lib/postgresql/data
-    # No port mapping - only accessible within network
+      - fcwo_postgres_prod_data:/var/lib/postgresql/data
+    # No port exposed - only accessible within network
     networks:
-      - lruesche-shared-network
+      - fcwo-network
     healthcheck:
-      test: [CMD-SHELL, pg_isready -U fcwo_user -d fcwo_mannschaftsfahrt]
+      test: ['CMD-SHELL', 'pg_isready -U fcwo_user -d fcwo_mannschaftsfahrt']
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 30s
 
-  # Production Application
-  app-prod:
+  # Nuxt Production Server
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runner
-    image: fcwo-mannschaftsfahrt-prod:latest
-    container_name: fcwo-mannschaftsfahrt-prod
-    restart: unless-stopped
+      target: production
+    container_name: fcwo-mannschaftsfahrt-app-prod
+    restart: always
+    ports:
+      - '3000:3000'
     environment:
       NODE_ENV: production
-      PORT: 3000
-      HOSTNAME: 0.0.0.0
-      DATABASE_URL: postgresql://fcwo_user:${POSTGRES_PASSWORD:-fcwo_mannschaftsfahrt_prod_secure_password_2025}@postgres-prod:5432/fcwo_mannschaftsfahrt
+      DATABASE_URL: postgresql://fcwo_user:${POSTGRES_PASSWORD}@db:5432/fcwo_mannschaftsfahrt
     networks:
-      - lruesche-shared-network
+      - fcwo-network
     depends_on:
-      postgres-prod:
+      db:
         condition: service_healthy
     healthcheck:
-      test: [CMD, wget, --no-verbose, --tries=1, --spider, 'http://localhost:3000/']
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
 volumes:
-  postgres_mannschaftsfahrt_prod_data:
-    driver: local
+  fcwo_postgres_prod_data:
 
 networks:
-  lruesche-shared-network:
-    external: true
+  fcwo-network:
+    driver: bridge

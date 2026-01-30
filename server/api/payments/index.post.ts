@@ -1,36 +1,51 @@
-import type { PaymentsStateResponse } from '~/types/payment'
-import { getPrismaClient } from '../../utils/prisma'
-import { validatePaymentsStateDto } from '../../utils/validation'
+import type { PaymentsStateDto, PaymentsStateResponse } from '~/types/payment'
+import { prisma } from '#server/utils/db'
 
 export default defineEventHandler(async (event): Promise<PaymentsStateResponse> => {
   try {
-    const body = await readBody(event)
-    const state = validatePaymentsStateDto(body)
+    const body = await readBody<PaymentsStateDto>(event)
 
-    const prisma = await getPrismaClient()
+    // Validate input
+    if (typeof body.totalAmount !== 'number' || !Array.isArray(body.participants)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Invalid request body',
+      })
+    }
 
-    // Start a transaction to replace all payments
+    // Start a transaction to replace all data
     const result = await prisma.$transaction(async (tx) => {
-      // Delete all existing payments
+      // Delete all existing payments first (due to foreign key constraint)
       await tx.payment.deleteMany({})
 
-      // Create new payments from the state
-      if (state.persons.length > 0) {
-        await tx.payment.createMany({
-          data: state.persons.map(person => ({
-            name: person.name,
-            paidAmount: person.paidAmount,
-            totalAmountPerPerson: state.totalAmount,
-          })),
-        })
-      }
+      // Delete all existing participants
+      await tx.participant.deleteMany({})
 
-      // Fetch the created payments to get timestamps
-      const createdPayments = await tx.payment.findMany({
-        orderBy: {
-          createdAt: 'asc',
-        },
-      })
+      // Create participants and payments
+      const createdPayments = []
+
+      for (const participant of body.participants) {
+        // Create participant
+        const createdParticipant = await tx.participant.create({
+          data: {
+            name: participant.name,
+          },
+        })
+
+        // Create payment for this participant
+        const payment = await tx.payment.create({
+          data: {
+            paidAmount: participant.paidAmount,
+            totalAmount: body.totalAmount,
+            participantId: createdParticipant.id,
+          },
+          include: {
+            participant: true,
+          },
+        })
+
+        createdPayments.push(payment)
+      }
 
       return createdPayments
     })
@@ -38,13 +53,13 @@ export default defineEventHandler(async (event): Promise<PaymentsStateResponse> 
     const lastSaved = result.length > 0
       ? result.reduce((latest, payment) => {
           return payment.updatedAt > latest ? payment.updatedAt : latest
-        }, result[0].updatedAt).toISOString()
+        }, result[0]!.updatedAt).toISOString()
       : new Date().toISOString()
 
     return {
-      totalAmount: state.totalAmount,
-      persons: result.map(p => ({
-        name: p.name,
+      totalAmount: body.totalAmount,
+      participants: result.map(p => ({
+        name: p.participant.name,
         paidAmount: p.paidAmount,
       })),
       lastSaved,

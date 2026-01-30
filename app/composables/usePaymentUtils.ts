@@ -1,4 +1,4 @@
-import type { PaymentStatus } from '~/types/payment'
+import type { PaymentStatus } from '@/types/payment'
 
 export function usePaymentUtils() {
   function formatCurrency(amount: number): string {

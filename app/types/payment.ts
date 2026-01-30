@@ -1,54 +1,63 @@
+// =============================================================================
+// Payment Status
+// =============================================================================
 export type PaymentStatus = 'not-paid' | 'paid' | 'partial' | 'overpaid'
 
+// =============================================================================
+// Database Models (aligned with Prisma schema)
+// =============================================================================
+export interface Participant {
+  id: string
+  name: string
+  email: string | null
+  createdAt: Date
+  updatedAt: Date
+  payment?: Payment | null
+}
+
 export interface Payment {
-  id: number
+  id: string
+  paidAmount: number
+  totalAmount: number
+  participantId: string
+  createdAt: Date
+  updatedAt: Date
+  participant?: Participant
+}
+
+export interface ParticipantWithPayment extends Participant {
+  payment: Payment
+}
+
+// =============================================================================
+// Frontend Display Types
+// =============================================================================
+export interface ParticipantDisplay {
+  id: number // Local index for Vue rendering
   name: string
   paidAmount: number
   remainingAmount: number
   status: PaymentStatus
 }
 
-export interface PersonData {
-  id: number
+// =============================================================================
+// DTOs for API Communication
+// =============================================================================
+export interface ParticipantCreateDto {
   name: string
-  paidAmount: number
-}
-
-// Database model types (aligned with Prisma schema)
-export interface PaymentRecord {
-  id: string
-  name: string
-  paidAmount: number
-  totalAmountPerPerson: number
-  createdAt: Date
-  updatedAt: Date
-}
-
-// DTOs for API communication
-export interface PaymentCreateDto {
-  name: string
-  paidAmount: number
-  totalAmountPerPerson: number
-}
-
-export interface PaymentUpdateDto {
-  name?: string
+  email?: string
   paidAmount?: number
-  totalAmountPerPerson?: number
 }
 
-export interface PaymentResponse {
-  id: string
-  name: string
-  paidAmount: number
-  totalAmountPerPerson: number
-  createdAt: string
-  updatedAt: string
+export interface ParticipantUpdateDto {
+  name?: string
+  email?: string
+  paidAmount?: number
 }
 
 export interface PaymentsStateDto {
   totalAmount: number
-  persons: Array<{
+  participants: Array<{
     name: string
     paidAmount: number
   }>
@@ -56,7 +65,7 @@ export interface PaymentsStateDto {
 
 export interface PaymentsStateResponse {
   totalAmount: number
-  persons: Array<{
+  participants: Array<{
     name: string
     paidAmount: number
   }>
