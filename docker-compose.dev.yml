@@ -13,7 +13,7 @@ services:
     ports:
       - '5433:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U fcwo_user -d fcwo_mannschaftsfahrt']
+      test: [CMD-SHELL, pg_isready -U fcwo_user -d fcwo_mannschaftsfahrt]
       interval: 5s
       timeout: 5s
       retries: 5
