@@ -36,6 +36,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Prepare Nuxt and generate Prisma Client (skipped in deps stage)
+# DATABASE_URL is only needed for prisma generate, not used at build time
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN pnpm nuxt prepare && pnpm prisma generate
 
 # Build Nuxt application
