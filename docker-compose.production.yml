@@ -12,7 +12,7 @@ services:
       - fcwo_postgres_prod_data:/var/lib/postgresql/data
     # No port exposed - only accessible within network
     networks:
-      - fcwo-network
+      - lruesche-shared-network
     healthcheck:
       test: [CMD-SHELL, pg_isready -U fcwo_user -d fcwo_mannschaftsfahrt]
       interval: 30s
@@ -26,15 +26,14 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
-    container_name: fcwo-mannschaftsfahrt-app-prod
+    container_name: fcwo-mannschaftsfahrt-prod
     restart: always
-    ports:
-      - '3000:3000'
+    # No port exposed - nginx handles routing via shared network
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://fcwo_user:${POSTGRES_PASSWORD}@db:5432/fcwo_mannschaftsfahrt
     networks:
-      - fcwo-network
+      - lruesche-shared-network
     depends_on:
       db:
         condition: service_healthy
@@ -49,5 +48,5 @@ volumes:
   fcwo_postgres_prod_data:
 
 networks:
-  fcwo-network:
-    driver: bridge
+  lruesche-shared-network:
+    external: true
