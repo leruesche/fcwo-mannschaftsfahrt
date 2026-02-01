@@ -10,6 +10,7 @@ const store = usePaymentStore()
 const { formatCurrency, getStatusText, getStatusColor } = usePaymentUtils()
 const { exportCSV, exportJSON, importJSON } = useFileExport()
 const toast = useToast()
+const route = useRoute()
 
 // ============================================
 // Refs
@@ -17,27 +18,32 @@ const toast = useToast()
 const fileInput = ref<HTMLInputElement | null>(null)
 const { lastSaved, totalAmount, participants } = storeToRefs(store)
 
-const { data, error } = useAsyncData('payments', () => $fetch('/api/payments'))
+const { data, error } = await useAsyncData(route.path, () => $fetch('/api/payments'))
 
-if (error.value) {
-  console.error('Fehler beim Laden der Daten:', error.value)
-  toast.add({
-    title: 'Fehler beim Laden',
-    description: 'Die Daten konnten nicht geladen werden.',
-    icon: 'i-lucide-alert-circle',
-    color: 'error',
-  })
-}
+// Reaktiv auf Datenänderungen reagieren
+watch(data, (newData) => {
+  if (newData) {
+    lastSaved.value = newData.lastSaved
+    totalAmount.value = newData.totalAmount
+    participants.value = newData.participants.map((p, index) => ({
+      id: index,
+      name: p.name,
+      paidAmount: p.paidAmount,
+    }))
+  }
+}, { immediate: true })
 
-if (data.value) {
-  lastSaved.value = data.value.lastSaved
-  totalAmount.value = data.value.totalAmount
-  participants.value = data.value.participants.map((p, index) => ({
-    id: index,
-    name: p.name,
-    paidAmount: p.paidAmount,
-  }))
-}
+watch(error, (newError) => {
+  if (newError) {
+    console.error('Fehler beim Laden der Daten:', newError)
+    toast.add({
+      title: 'Fehler beim Laden',
+      description: 'Die Daten konnten nicht geladen werden.',
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  }
+}, { immediate: true })
 
 // ============================================
 // Computed Properties
@@ -293,12 +299,13 @@ useHead({
       <!-- Teilnehmerliste -->
       <UCard>
         <template #header>
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-xl font-semibold">
               Teilnehmerliste
             </h2>
             <UButton
               icon="i-lucide-plus"
+              class="w-full sm:w-auto"
               @click="addParticipant"
             >
               Teilnehmer hinzufügen
@@ -310,64 +317,135 @@ useHead({
           v-if="participantData.length === 0"
           class="py-12 text-center"
         >
-          <p class="text-muted">
+          <p class="wrap-break-word text-muted">
             Noch keine Teilnehmer hinzugefügt. Klicke auf "Teilnehmer hinzufügen" um zu beginnen.
           </p>
         </div>
 
-        <UTable
+        <!-- Desktop: Tabellen-Ansicht -->
+        <div
           v-else
-          :data="participantData"
-          :columns="columns"
-          :meta="tableMeta"
-          sticky
+          class="hidden md:block"
         >
-          <template #name-cell="{ row }">
-            <UInput
-              v-model="row.original.name"
-              placeholder="Teilnehmer"
-              size="sm"
-              @blur="updateParticipantName(row.original.id, row.original.name)"
-            />
-          </template>
+          <UTable
+            :data="participantData"
+            :columns="columns"
+            :meta="tableMeta"
+            sticky
+          >
+            <template #name-cell="{ row }">
+              <UInput
+                v-model="row.original.name"
+                placeholder="Teilnehmer"
+                size="sm"
+                @blur="updateParticipantName(row.original.id, row.original.name)"
+              />
+            </template>
 
-          <template #paidAmount-cell="{ row }">
-            <UInput
-              v-model.number="row.original.paidAmount"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              size="sm"
-              @blur="updateParticipantPaidAmount(row.original.id, row.original.paidAmount)"
-            />
-          </template>
+            <template #paidAmount-cell="{ row }">
+              <UInput
+                v-model.number="row.original.paidAmount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                size="sm"
+                @blur="updateParticipantPaidAmount(row.original.id, row.original.paidAmount)"
+              />
+            </template>
 
-          <template #remainingAmount-cell="{ row }">
-            <span class="font-semibold">
-              {{ formatCurrency(row.original.remainingAmount) }}
-            </span>
-          </template>
+            <template #remainingAmount-cell="{ row }">
+              <span class="font-semibold">
+                {{ formatCurrency(row.original.remainingAmount) }}
+              </span>
+            </template>
 
-          <template #status-cell="{ row }">
-            <UBadge
-              :color="getStatusColor(row.original.status)"
-              variant="solid"
-            >
-              {{ getStatusText(row.original.status) }}
-            </UBadge>
-          </template>
+            <template #status-cell="{ row }">
+              <UBadge
+                :color="getStatusColor(row.original.status)"
+                variant="solid"
+              >
+                {{ getStatusText(row.original.status) }}
+              </UBadge>
+            </template>
 
-          <template #actions-cell="{ row }">
-            <UButton
-              icon="i-lucide-trash-2"
-              color="error"
-              variant="ghost"
-              size="sm"
-              @click="removeParticipant(row.original.id)"
-            />
-          </template>
-        </UTable>
+            <template #actions-cell="{ row }">
+              <UButton
+                icon="i-lucide-trash-2"
+                color="error"
+                variant="ghost"
+                size="sm"
+                @click="removeParticipant(row.original.id)"
+              />
+            </template>
+          </UTable>
+        </div>
+
+        <!-- Mobile: Karten-Ansicht -->
+        <div
+          v-if="participantData.length > 0"
+          class="space-y-4 md:hidden"
+        >
+          <div
+            v-for="participant in participantData"
+            :key="participant.id"
+            class="rounded-lg border p-4"
+            :class="{
+              'border-error/30 bg-error/10': participant.status === 'not-paid',
+              'border-warning/30 bg-warning/10': participant.status === 'partial',
+              'border-success/30 bg-success/10': participant.status === 'paid' || participant.status === 'overpaid',
+            }"
+          >
+            <div class="mb-3 flex items-start justify-between gap-2">
+              <UBadge
+                :color="getStatusColor(participant.status)"
+                variant="solid"
+                size="sm"
+              >
+                {{ getStatusText(participant.status) }}
+              </UBadge>
+              <UButton
+                icon="i-lucide-trash-2"
+                color="error"
+                variant="ghost"
+                size="xs"
+                @click="removeParticipant(participant.id)"
+              />
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-muted">Name</label>
+                <UInput
+                  v-model="participant.name"
+                  placeholder="Teilnehmer"
+                  size="lg"
+                  class="w-full"
+                  @blur="updateParticipantName(participant.id, participant.name)"
+                />
+              </div>
+
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-muted">Gezahlter Betrag (€)</label>
+                <UInput
+                  v-model.number="participant.paidAmount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  size="lg"
+                  class="w-full"
+                  @blur="updateParticipantPaidAmount(participant.id, participant.paidAmount)"
+                />
+              </div>
+
+              <div class="flex items-center justify-between rounded bg-black/5 px-3 py-2 dark:bg-white/5">
+                <span class="text-sm text-muted">Restbetrag:</span>
+                <span class="font-semibold">{{ formatCurrency(participant.remainingAmount) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </UCard>
 
       <!-- Zusammenfassung -->
@@ -379,24 +457,24 @@ useHead({
         </template>
 
         <div class="space-y-4">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="text-muted">Anzahl Teilnehmer:</span>
             <span class="font-semibold">{{ store.participantCount }}</span>
           </div>
-          <div class="flex items-center justify-between">
-            <span class="text-muted">Gesamtbetrag pro Teilnehmer:</span>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="shrink-0 text-muted">Gesamtbetrag pro Teilnehmer:</span>
             <span class="font-semibold">{{ formatCurrency(store.totalAmount) }}</span>
           </div>
-          <div class="flex items-center justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="text-muted">Bereits gezahlt:</span>
             <span class="font-semibold text-success">{{ formatCurrency(store.totalPaid) }}</span>
           </div>
-          <div class="flex items-center justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="text-muted">Noch offen:</span>
             <span class="font-semibold text-warning">{{ formatCurrency(store.pendingAmount) }}</span>
           </div>
           <USeparator />
-          <div class="flex items-center justify-between text-lg">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-base sm:text-lg">
             <span class="font-semibold">Erwarteter Gesamtbetrag:</span>
             <span class="font-bold">{{ formatCurrency(store.expectedTotal) }}</span>
           </div>
@@ -411,19 +489,21 @@ useHead({
           </h2>
         </template>
 
-        <p class="mb-4 text-sm text-muted">
+        <p class="mb-4 text-sm break-words text-muted">
           💾 Daten werden automatisch im Browser gespeichert. Du kannst sie auch als Datei exportieren oder importieren.
         </p>
 
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <UButton
             icon="i-lucide-file-spreadsheet"
+            class="w-full justify-center sm:w-auto"
             @click="handleExportCSV"
           >
             Als CSV exportieren
           </UButton>
           <UButton
             icon="i-lucide-file-json"
+            class="w-full justify-center sm:w-auto"
             @click="handleExportJSON"
           >
             Als JSON exportieren
@@ -432,6 +512,7 @@ useHead({
             icon="i-lucide-upload"
             color="secondary"
             variant="outline"
+            class="w-full justify-center sm:w-auto"
             @click="triggerFileInput"
           >
             Daten importieren

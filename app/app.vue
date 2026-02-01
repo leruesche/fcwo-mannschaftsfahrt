@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-const items = ref<NavigationMenuItem[]>([
+const items = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Startseite',
     icon: 'i-lucide-house',
@@ -40,7 +40,7 @@ useSeoMeta({
 
 <template>
   <UApp>
-    <UHeader>
+    <UHeader mode="drawer">
       <template #title>
         <NuxtImg
           src="/fcwo-logo.png"
@@ -55,6 +55,13 @@ useSeoMeta({
       <template #right>
         <UColorModeButton />
       </template>
+      <template #body>
+        <UNavigationMenu
+          :items="items"
+          orientation="vertical"
+          class="-mx-2.5"
+        />
+      </template>
     </UHeader>
 
     <UMain>
@@ -65,7 +72,7 @@ useSeoMeta({
 
     <UFooter>
       <template #left>
-        <p class="text-sm text-muted">
+        <p class="text-center text-sm wrap-break-word text-muted sm:text-left">
           Mannschaftsfahrt Verwaltung • © {{ new Date().getFullYear() }}
         </p>
       </template>

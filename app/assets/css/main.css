@@ -1,6 +1,17 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
 
+/* Mobile-friendly defaults */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Ensure tables don't break on mobile */
+table {
+  table-layout: fixed;
+}
+
 @theme static {
   --font-sans: 'Overpass', sans-serif;
 
