@@ -15,6 +15,7 @@ logs
 
 # Misc
 .DS_Store
+.pnpm-store
 .fleet
 .idea
 
@@ -22,3 +23,7 @@ logs
 .env
 .env.*
 !.env.example
+
+# Prisma
+prisma/migrations
+prisma/generated

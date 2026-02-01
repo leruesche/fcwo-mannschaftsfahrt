@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import process from 'node:process'
+
 export default defineNuxtConfig({
   modules: ['@nuxt/eslint', '@nuxt/ui', '@pinia/nuxt', '@nuxt/image'],
 
@@ -16,5 +18,10 @@ export default defineNuxtConfig({
     config: {
       standalone: false,
     },
+  },
+
+  runtimeConfig: {
+    // Private keys (only available on server-side)
+    databaseUrl: process.env.DATABASE_URL || 'postgresql://fcwo_user:fcwo_dev_password@localhost:5433/fcwo_mannschaftsfahrt',
   },
 })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Row, TableMeta } from '@tanstack/vue-table'
-import type { Payment, PersonData } from '~/types/payment'
+import type { ParticipantDisplay } from '~/types/payment'
 
 // ============================================
 // Composables & Store
@@ -15,45 +15,70 @@ const toast = useToast()
 // Refs
 // ============================================
 const fileInput = ref<HTMLInputElement | null>(null)
+const { lastSaved, totalAmount, participants } = storeToRefs(store)
 
-// ============================================
-// Lifecycle
-// ============================================
-onMounted(() => {
-  store.loadFromStorage()
-  nextTick(() => {
-    if (store.persons.length === 0) {
-      store.addPlayer('', 0)
-    }
+const { data, error } = useAsyncData('payments', () => $fetch('/api/payments'))
+
+if (error.value) {
+  console.error('Fehler beim Laden der Daten:', error.value)
+  toast.add({
+    title: 'Fehler beim Laden',
+    description: 'Die Daten konnten nicht geladen werden.',
+    icon: 'i-lucide-alert-circle',
+    color: 'error',
   })
-})
+}
+
+if (data.value) {
+  lastSaved.value = data.value.lastSaved
+  totalAmount.value = data.value.totalAmount
+  participants.value = data.value.participants.map((p, index) => ({
+    id: index,
+    name: p.name,
+    paidAmount: p.paidAmount,
+  }))
+}
 
 // ============================================
 // Computed Properties
 // ============================================
-const totalAmount = computed({
-  get: () => store.totalAmount,
-  set: value => store.setTotalAmount(value),
-})
+const totalAmountInput = ref(0)
 
-const paymentData = computed<Payment[]>(() => {
-  if (!store.persons || store.persons.length === 0) {
+watch(() => store.totalAmount, (newVal) => {
+  totalAmountInput.value = newVal
+}, { immediate: true })
+
+async function updateTotalAmount() {
+  try {
+    await store.setTotalAmount(totalAmountInput.value)
+  }
+  catch {
+    toast.add({
+      title: 'Fehler beim Speichern',
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  }
+}
+
+const participantData = computed<ParticipantDisplay[]>(() => {
+  if (!store.participants || store.participants.length === 0) {
     return []
   }
 
-  return store.persons.map((person: PersonData) => ({
-    id: person.id,
-    name: person.name,
-    paidAmount: person.paidAmount,
-    remainingAmount: store.getPersonRemaining(person.id),
-    status: store.getPersonStatus(person.id),
+  return store.participants.map(participant => ({
+    id: participant.id,
+    name: participant.name,
+    paidAmount: participant.paidAmount,
+    remainingAmount: store.getParticipantRemaining(participant.id),
+    status: store.getParticipantStatus(participant.id),
   }))
 })
 
 // ============================================
 // Table Configuration
 // ============================================
-const columns: TableColumn<Payment>[] = [
+const columns: TableColumn<ParticipantDisplay>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
@@ -106,9 +131,9 @@ const columns: TableColumn<Payment>[] = [
   },
 ]
 
-const tableMeta: TableMeta<Payment> = {
+const tableMeta: TableMeta<ParticipantDisplay> = {
   class: {
-    tr: (row: Row<Payment>) => {
+    tr: (row: Row<ParticipantDisplay>) => {
       if (row.original.status === 'not-paid') {
         return 'bg-error/10'
       }
@@ -124,33 +149,71 @@ const tableMeta: TableMeta<Payment> = {
 }
 
 // ============================================
-// Player Management
+// Participant Management
 // ============================================
-function addPlayer() {
-  store.addPlayer('', 0)
-  toast.add({
-    title: 'Teilnehmer hinzugefügt',
-    icon: 'i-lucide-check',
-    color: 'success',
-  })
+async function addParticipant() {
+  try {
+    await store.addParticipant('', 0)
+    toast.add({
+      title: 'Teilnehmer hinzugefügt',
+      icon: 'i-lucide-check',
+      color: 'success',
+    })
+  }
+  catch {
+    toast.add({
+      title: 'Fehler',
+      description: 'Teilnehmer konnte nicht hinzugefügt werden.',
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  }
 }
 
-function removePerson(personId: number) {
-  store.removePerson(personId)
-  toast.add({
-    title: 'Teilnehmer entfernt',
-    icon: 'i-lucide-check',
-    color: 'success',
-  })
+async function removeParticipant(participantId: number) {
+  try {
+    await store.removeParticipant(participantId)
+    toast.add({
+      title: 'Teilnehmer entfernt',
+      icon: 'i-lucide-check',
+      color: 'success',
+    })
+  }
+  catch {
+    toast.add({
+      title: 'Fehler',
+      description: 'Teilnehmer konnte nicht entfernt werden.',
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  }
 }
 
-function updatePersonName(personId: number, name: string) {
-  store.updatePerson(personId, { name })
+async function updateParticipantName(participantId: number, name: string) {
+  try {
+    await store.updateParticipant(participantId, { name })
+  }
+  catch {
+    toast.add({
+      title: 'Fehler beim Speichern',
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  }
 }
 
-function updatePersonPaidAmount(personId: number, paidAmount: number | string) {
+async function updateParticipantPaidAmount(participantId: number, paidAmount: number | string) {
   const amount = typeof paidAmount === 'string' ? Number.parseFloat(paidAmount) || 0 : paidAmount
-  store.updatePerson(personId, { paidAmount: amount })
+  try {
+    await store.updateParticipant(participantId, { paidAmount: amount })
+  }
+  catch {
+    toast.add({
+      title: 'Fehler beim Speichern',
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  }
 }
 
 // ============================================
@@ -170,13 +233,13 @@ function triggerFileInput() {
   fileInput.value?.click()
 }
 
-function handleFileImport(event: Event) {
+async function handleFileImport(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file)
     return
 
-  importJSON(file, content => store.importFromJSON(content))
+  await importJSON(file, content => store.importFromJSON(content))
   target.value = ''
 }
 
@@ -216,12 +279,13 @@ useHead({
           </label>
           <UInput
             id="totalAmount"
-            v-model.number="totalAmount"
+            v-model.number="totalAmountInput"
             type="number"
             step="0.01"
             min="0"
             placeholder="0.00"
             size="lg"
+            @blur="updateTotalAmount"
           />
         </div>
       </UCard>
@@ -235,7 +299,7 @@ useHead({
             </h2>
             <UButton
               icon="i-lucide-plus"
-              @click="addPlayer"
+              @click="addParticipant"
             >
               Teilnehmer hinzufügen
             </UButton>
@@ -243,7 +307,7 @@ useHead({
         </template>
 
         <div
-          v-if="paymentData.length === 0"
+          v-if="participantData.length === 0"
           class="py-12 text-center"
         >
           <p class="text-muted">
@@ -253,7 +317,7 @@ useHead({
 
         <UTable
           v-else
-          :data="paymentData"
+          :data="participantData"
           :columns="columns"
           :meta="tableMeta"
           sticky
@@ -263,7 +327,7 @@ useHead({
               v-model="row.original.name"
               placeholder="Teilnehmer"
               size="sm"
-              @blur="updatePersonName(row.original.id, row.original.name)"
+              @blur="updateParticipantName(row.original.id, row.original.name)"
             />
           </template>
 
@@ -275,7 +339,7 @@ useHead({
               min="0"
               placeholder="0.00"
               size="sm"
-              @blur="updatePersonPaidAmount(row.original.id, row.original.paidAmount)"
+              @blur="updateParticipantPaidAmount(row.original.id, row.original.paidAmount)"
             />
           </template>
 
@@ -300,7 +364,7 @@ useHead({
               color="error"
               variant="ghost"
               size="sm"
-              @click="removePerson(row.original.id)"
+              @click="removeParticipant(row.original.id)"
             />
           </template>
         </UTable>
@@ -317,7 +381,7 @@ useHead({
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <span class="text-muted">Anzahl Teilnehmer:</span>
-            <span class="font-semibold">{{ store.personCount }}</span>
+            <span class="font-semibold">{{ store.participantCount }}</span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-muted">Gesamtbetrag pro Teilnehmer:</span>

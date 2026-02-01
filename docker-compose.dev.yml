@@ -1,0 +1,64 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: fcwo-mannschaftsfahrt-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fcwo_mannschaftsfahrt
+      POSTGRES_USER: fcwo_user
+      POSTGRES_PASSWORD: fcwo_dev_password
+    volumes:
+      - fcwo_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U fcwo_user -d fcwo_mannschaftsfahrt]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Nuxt Development Server
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: fcwo-mannschaftsfahrt-app
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - fcwo_node_modules:/app/node_modules
+      - fcwo_nuxt_cache:/app/.nuxt
+      - /app/.output
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://fcwo_user:fcwo_dev_password@db:5432/fcwo_mannschaftsfahrt
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm dev"
+
+  # Prisma Studio
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: fcwo-mannschaftsfahrt-studio
+    ports:
+      - '5555:5555'
+    volumes:
+      - .:/app
+      - fcwo_node_modules:/app/node_modules
+    environment:
+      DATABASE_URL: postgresql://fcwo_user:fcwo_dev_password@db:5432/fcwo_mannschaftsfahrt
+    depends_on:
+      - app
+    command: sh -c "pnpm prisma generate && pnpm prisma studio --port 5555 --browser none"
+
+volumes:
+  fcwo_postgres_data:
+  fcwo_node_modules:
+  fcwo_nuxt_cache:

@@ -1,48 +1,54 @@
-import type { PersonData } from '~/types/payment'
+import type { ParticipantDisplay, PaymentsStateDto, PaymentsStateResponse } from '~/types/payment'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-const STORAGE_KEY = 'mannschaftsfahrt_zahlungen'
+interface ParticipantData {
+  id: number
+  name: string
+  paidAmount: number
+}
 
 export const usePaymentStore = defineStore('payment', () => {
   // State
   const totalAmount = ref(0)
-  const persons = ref<PersonData[]>([])
+  const participants = ref<ParticipantData[]>([])
   const lastSaved = ref<string | null>(null)
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   // Getters
-  const personCount = computed(() => {
-    return persons.value.filter(p => p.name.trim() !== '').length
+  const participantCount = computed(() => {
+    return participants.value.filter(p => p.name.trim() !== '').length
   })
 
   const totalPaid = computed(() => {
-    return persons.value.reduce((sum, person) => sum + (person.paidAmount || 0), 0)
+    return participants.value.reduce((sum, p) => sum + (p.paidAmount || 0), 0)
   })
 
   const expectedTotal = computed(() => {
-    const count = persons.value.filter(p => p.name.trim() !== '').length
+    const count = participants.value.filter(p => p.name.trim() !== '').length
     return totalAmount.value * count
   })
 
   const pendingAmount = computed(() => {
-    const count = persons.value.filter(p => p.name.trim() !== '').length
-    const paid = persons.value.reduce((sum, person) => sum + (person.paidAmount || 0), 0)
+    const count = participants.value.filter(p => p.name.trim() !== '').length
+    const paid = participants.value.reduce((sum, p) => sum + (p.paidAmount || 0), 0)
     return (totalAmount.value * count) - paid
   })
 
-  const getPersonRemaining = (personId: number) => {
-    const person = persons.value.find(p => p.id === personId)
-    if (!person)
+  const getParticipantRemaining = (participantId: number) => {
+    const participant = participants.value.find(p => p.id === participantId)
+    if (!participant)
       return 0
-    return totalAmount.value - (person.paidAmount || 0)
+    return totalAmount.value - (participant.paidAmount || 0)
   }
 
-  const getPersonStatus = (personId: number): 'not-paid' | 'paid' | 'partial' | 'overpaid' => {
-    const person = persons.value.find(p => p.id === personId)
-    if (!person)
+  const getParticipantStatus = (participantId: number): 'not-paid' | 'paid' | 'partial' | 'overpaid' => {
+    const participant = participants.value.find(p => p.id === participantId)
+    if (!participant)
       return 'not-paid'
 
-    const paid = person.paidAmount || 0
+    const paid = participant.paidAmount || 0
     const remaining = totalAmount.value - paid
 
     if (paid === 0)
@@ -54,93 +60,79 @@ export const usePaymentStore = defineStore('payment', () => {
     return 'overpaid'
   }
 
-  // Actions
-  function loadFromStorage() {
-    if (typeof window === 'undefined')
-      return
+  async function save() {
+    isLoading.value = true
+    error.value = null
 
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const data = JSON.parse(saved)
-        totalAmount.value = Number.parseFloat(data.totalAmount) || 0
-        const loadedPersons = (data.persons || []).map((p: any, index: number) => ({
-          id: index,
-          name: p.name || '',
-          paidAmount: Number.parseFloat(p.paidAmount) || 0,
-        }))
-        persons.value = loadedPersons.length > 0 ? loadedPersons : []
-        lastSaved.value = data.lastSaved || null
-      }
-    }
-    catch (error) {
-      console.error('Fehler beim Laden der Daten:', error)
-    }
-  }
-
-  function saveToStorage() {
-    if (typeof window === 'undefined')
-      return
-
-    try {
-      const data = {
-        totalAmount: totalAmount.value.toString(),
-        persons: persons.value.map(p => ({
+      const state: PaymentsStateDto = {
+        totalAmount: totalAmount.value,
+        participants: participants.value.map(p => ({
           name: p.name,
-          paidAmount: p.paidAmount.toString(),
+          paidAmount: p.paidAmount,
         })),
-        lastSaved: new Date().toISOString(),
       }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-      lastSaved.value = data.lastSaved
+
+      const response = await $fetch<PaymentsStateResponse>('/api/payments', {
+        method: 'POST',
+        body: state,
+      })
+
+      lastSaved.value = response.lastSaved || new Date().toISOString()
     }
-    catch (error) {
-      console.error('Fehler beim Speichern der Daten:', error)
+    catch (err) {
+      error.value = 'Fehler beim Speichern der Daten'
+      console.error('Fehler beim Speichern:', err)
+      throw err
+    }
+    finally {
+      isLoading.value = false
     }
   }
 
-  function setTotalAmount(amount: number) {
+  async function setTotalAmount(amount: number) {
     totalAmount.value = amount
-    saveToStorage()
+    await save()
   }
 
-  function addPlayer(name = '', paidAmount = 0) {
-    const newId = persons.value.length > 0
-      ? Math.max(...persons.value.map(p => p.id)) + 1
+  async function addParticipant(name = '', paidAmount = 0) {
+    const newId = participants.value.length > 0
+      ? Math.max(...participants.value.map(p => p.id)) + 1
       : 0
 
-    persons.value.push({
+    participants.value.push({
       id: newId,
       name,
       paidAmount,
     })
-    saveToStorage()
+
+    await save()
   }
 
-  function removePerson(personId: number) {
-    persons.value = persons.value.filter(p => p.id !== personId)
-    saveToStorage()
+  async function removeParticipant(participantId: number) {
+    participants.value = participants.value.filter(p => p.id !== participantId)
+    await save()
   }
 
-  function updatePerson(personId: number, updates: Partial<PersonData>) {
-    const person = persons.value.find(p => p.id === personId)
-    if (person) {
-      Object.assign(person, updates)
-      saveToStorage()
+  async function updateParticipant(participantId: number, updates: Partial<ParticipantData>) {
+    const participant = participants.value.find(p => p.id === participantId)
+    if (participant) {
+      Object.assign(participant, updates)
+      await save()
     }
   }
 
   function exportToJSON() {
     const data = {
-      totalAmount: totalAmount.value.toString(),
-      persons: persons.value.map(p => ({
+      totalAmount: totalAmount.value,
+      participants: participants.value.map(p => ({
         name: p.name,
-        paidAmount: p.paidAmount.toString(),
-        remainingAmount: (totalAmount.value - p.paidAmount).toFixed(2),
-        status: getPersonStatus(p.id),
+        paidAmount: p.paidAmount,
+        remainingAmount: totalAmount.value - p.paidAmount,
+        status: getParticipantStatus(p.id),
       })),
       exportedAt: new Date().toISOString(),
-      version: '1.0',
+      version: '2.0',
     }
     return JSON.stringify(data, null, 2)
   }
@@ -148,9 +140,9 @@ export const usePaymentStore = defineStore('payment', () => {
   function exportToCSV() {
     let csv = 'Name,Gezahlter Betrag (€),Restbetrag (€),Status\n'
 
-    persons.value.forEach((person) => {
-      const remaining = (totalAmount.value - person.paidAmount).toFixed(2)
-      const status = getPersonStatus(person.id)
+    participants.value.forEach((participant) => {
+      const remaining = (totalAmount.value - participant.paidAmount).toFixed(2)
+      const status = getParticipantStatus(participant.id)
       let statusText = ''
 
       switch (status) {
@@ -168,14 +160,14 @@ export const usePaymentStore = defineStore('payment', () => {
           break
       }
 
-      csv += `"${person.name}",${person.paidAmount},${remaining},"${statusText}"\n`
+      csv += `"${participant.name}",${participant.paidAmount},${remaining},"${statusText}"\n`
     })
 
     csv += `\nGesamtbetrag pro Teilnehmer,${totalAmount.value}\n`
     return csv
   }
 
-  function importFromJSON(jsonData: string) {
+  async function importFromJSON(jsonData: string) {
     try {
       const data = JSON.parse(jsonData)
 
@@ -183,45 +175,58 @@ export const usePaymentStore = defineStore('payment', () => {
         totalAmount.value = Number.parseFloat(data.totalAmount) || 0
       }
 
-      persons.value = []
-      if (data.persons && data.persons.length > 0) {
-        data.persons.forEach((p: any, index: number) => {
-          persons.value.push({
-            id: index,
-            name: p.name || '',
-            paidAmount: Number.parseFloat(p.paidAmount) || 0,
-          })
-        })
-      }
+      // Support both old "persons" and new "participants" format
+      const rawParticipants = data.participants || data.persons || []
+      participants.value = rawParticipants.map((p: any, index: number) => ({
+        id: index,
+        name: p.name || '',
+        paidAmount: Number.parseFloat(p.paidAmount) || 0,
+      }))
 
-      saveToStorage()
+      await save()
       return true
     }
-    catch (error) {
-      console.error('Import-Fehler:', error)
+    catch (err) {
+      console.error('Import-Fehler:', err)
       return false
+    }
+  }
+
+  function getParticipantDisplay(participantId: number): ParticipantDisplay | null {
+    const participant = participants.value.find(p => p.id === participantId)
+    if (!participant)
+      return null
+
+    return {
+      id: participant.id,
+      name: participant.name,
+      paidAmount: participant.paidAmount,
+      remainingAmount: totalAmount.value - participant.paidAmount,
+      status: getParticipantStatus(participant.id),
     }
   }
 
   return {
     // State
     totalAmount,
-    persons,
+    participants,
     lastSaved,
+    isLoading,
+    error,
     // Getters
-    personCount,
+    participantCount,
     totalPaid,
     expectedTotal,
     pendingAmount,
-    getPersonRemaining,
-    getPersonStatus,
+    getParticipantRemaining,
+    getParticipantStatus,
+    getParticipantDisplay,
     // Actions
-    loadFromStorage,
-    saveToStorage,
+    save,
     setTotalAmount,
-    addPlayer,
-    removePerson,
-    updatePerson,
+    addParticipant,
+    removeParticipant,
+    updateParticipant,
     exportToJSON,
     exportToCSV,
     importFromJSON,
