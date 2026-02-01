@@ -21,7 +21,8 @@ RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --prod=false
+# Use --ignore-scripts to skip postinstall (prisma generate runs in builder stage)
+RUN pnpm install --frozen-lockfile --prod=false --ignore-scripts
 
 # =============================================================================
 # Build Stage
@@ -34,8 +35,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma Client
-RUN pnpm prisma generate
+# Prepare Nuxt and generate Prisma Client (skipped in deps stage)
+RUN pnpm nuxt prepare && pnpm prisma generate
 
 # Build Nuxt application
 RUN pnpm build
