@@ -25,5 +25,4 @@ logs
 !.env.example
 
 # Prisma
-prisma/migrations
 prisma/generated
