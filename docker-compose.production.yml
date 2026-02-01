@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: fcwo_mannschaftsfahrt
       POSTGRES_USER: fcwo_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_PASSWORD: fcwo_tour_prod_secure_2024
     volumes:
       - fcwo_postgres_prod_data:/var/lib/postgresql/data
     # No port exposed - only accessible within network
@@ -26,12 +26,13 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
+    image: fcwo-mannschaftsfahrt-prod:latest
     container_name: fcwo-mannschaftsfahrt-prod
     restart: always
     # No port exposed - nginx handles routing via shared network
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://fcwo_user:${POSTGRES_PASSWORD}@db:5432/fcwo_mannschaftsfahrt
+      DATABASE_URL: postgresql://fcwo_user:fcwo_tour_prod_secure_2024@db:5432/fcwo_mannschaftsfahrt
     networks:
       - lruesche-shared-network
     depends_on:

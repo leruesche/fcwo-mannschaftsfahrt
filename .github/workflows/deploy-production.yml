@@ -1,0 +1,58 @@
+# Production Deployment
+# Triggered on push to main branch
+
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            set -e
+            echo "🚀 Starting Mannschaftsfahrt Production Deployment..."
+
+            echo "🔐 Setting up SSH key for git operations..."
+            mkdir -p ~/.ssh
+            echo '${{ secrets.DEPLOY_SSH_KEY }}' > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+            REPO_DIR="/var/www/fcwo-mannschaftsfahrt"
+
+            # Check if directory exists
+            if [ -d "$REPO_DIR" ]; then
+              echo "✅ Repository exists"
+              cd "$REPO_DIR"
+              echo "🔄 Pulling latest changes..."
+              git fetch origin main
+              git reset --hard origin/main
+              git clean -fd
+            else
+              echo "📥 Cloning repository..."
+              cd /var/www
+              git clone -b main git@github.com:leruesche/fcwo-mannschaftsfahrt.git fcwo-mannschaftsfahrt
+              cd "$REPO_DIR"
+            fi
+
+            # Ensure scripts are executable
+            chmod +x scripts/*.sh 2>/dev/null || true
+
+            # Execute deployment script
+            echo "📜 Executing deployment script..."
+            export DEPLOY_SSH_KEY='${{ secrets.DEPLOY_SSH_KEY }}'
+            ./scripts/deploy-production.sh
+
+            echo "✅ Mannschaftsfahrt deployment completed!"
